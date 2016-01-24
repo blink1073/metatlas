@@ -108,6 +108,60 @@ def show_experiments(username=None):
     display(gui)
 
 
+def show_atlases(username=None):
+    """Create a gui to browse the available atlases.
+    """
+    query = 'SELECT DISTINCT username, name FROM atlases'
+    entries = [e for e in database.query(query)]
+    atlases = defaultdict(set)
+    for entry in entries:
+        if entry['atlas']:
+            atlases[entry['username']].add(entry['name'])
+            atlases['all'].add(entry['name'] or '')
+
+    user = getpass.getuser()
+    if user not in atlases:
+        user = 'all'
+    user_atlases = list(atlases.get(user, {}))
+
+    if user_atlases:
+        objects = retrieve('lcmsruns', username=user,
+                           experiment=user_experiments[0])
+    else:
+        objects = [LcmsRun()]
+
+    grid = create_qgrid(objects)
+
+    user_widget = widgets.Dropdown(
+        options=list(experiments.keys()),
+        value=user,
+        description='Username:'
+    )
+    ex_widget = widgets.Dropdown(
+        options=list(experiments[user]),
+        value=list(experiments[user])[1],
+        description='Experiment:'
+    )
+
+    def user_change(trait, value):
+        user_widget.value = value
+        ex_widget.options = list(atlases[value])
+        ex_widget.value = list(atlases[value])[0]
+
+    def experiment_change(trait, value):
+        objects = retrieve('lcmsruns', username=user_widget.value,
+                           experiment=value)
+        df = to_dataframe(objects)
+        if df is not None:
+            grid.df = df
+
+    user_widget.observe(user_change, 'value')
+    ex_widget.observe(experiment_change, 'value')
+
+    gui = widgets.VBox([widgets.HBox((user_widget, ex_widget)), grid])
+    display(gui)
+
+
 def show_lcms_run(run, min_mz=None, max_mz=None, polarity=None, ms_level=None):
     """Interact with LCMS data - XIC linked to a Spectrogram plot.
 
