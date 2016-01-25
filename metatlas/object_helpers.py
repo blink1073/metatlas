@@ -37,11 +37,30 @@ def callback_method(func):
     return notify
 
 
-def update_table(table_class):
+def update_table(db_name, table_name):
+    """
+    Parameters
+    ----------
+    table_class
+
+    Returns
+    -------
+
+    """
+
+
+
     #_obj = table_class
     #Create a new object of that class and store it.
     #Log into database
+    db = dataset.connect(db_name)
+
+    # see if table exits; if not, create it
+
     #Run alter table TABLE_NAME modify COLUMN_NAME double; for each float column
+    db.query('alter table `%s` modify `%s` double' % (table_name, 'peak_area'))
+    db.query('alter table `%s` modify `%s` double' % (table_name, 'peak_height'))
+    db.query('alter table `%s` modify `%s` double' % (table_name, 'amount'))
     pass
 
 

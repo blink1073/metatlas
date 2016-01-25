@@ -498,7 +498,8 @@ class MzReference(Reference):
 
 @set_docstring
 class IntensityReference(Reference):
-    """Intensity
+    """
+
     """
     peak_area = MetFloat()
     peak_height = MetFloat()
