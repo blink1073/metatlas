@@ -7,7 +7,7 @@ from pwd import getpwuid
 from tabulate import tabulate
 import pandas as pd
 
-from .object_helpers import (
+from object_helpers import (
     set_docstring, Workspace, format_timestamp, MetList,
     MetUnicode, MetFloat, MetInstance, MetInt, MetEnum, MetBool, HasTraits,
     Stub
@@ -496,6 +496,15 @@ class MzReference(Reference):
     modification = MetUnicode(help='Optional modification')
     observed_formula = MetUnicode(help='Optional observed formula')
 
+@set_docstring
+class IntensityReference(Reference):
+    """Intensity
+    """
+    peak_area = MetFloat()
+    peak_height = MetFloat()
+    amount = MetFloat()
+    amount_units = MetEnum(('xxx', 'xxx'), 'xxx')
+
 
 @set_docstring
 class CompoundIdentification(MetatlasObject):
@@ -508,6 +517,7 @@ class CompoundIdentification(MetatlasObject):
     mz_references = MetList(MetInstance(MzReference))
     rt_references = MetList(MetInstance(RtReference))
     frag_references = MetList(MetInstance(FragmentationReference))
+    intensity_references = MetList(MetInstance(IntensityReference))
 
 
 @set_docstring

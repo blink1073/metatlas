@@ -37,6 +37,19 @@ def callback_method(func):
     return notify
 
 
+def update_table(table_class):
+    #_obj = table_class
+    #Create a new object of that class and store it.
+    #Log into database
+    #Run alter table TABLE_NAME modify COLUMN_NAME double; for each float column
+    pass
+
+
+
+
+
+
+
 class NotifyList(list):
     extend = callback_method(list.extend)
     append = callback_method(list.append)
@@ -145,7 +158,7 @@ class Workspace(object):
         self._db = None
         self.tablename_lut = dict()
         self.subclass_lut = dict()
-        from .metatlas_objects import MetatlasObject
+        from metatlas_objects import MetatlasObject
         for klass in _get_subclasses(MetatlasObject):
             name = klass.__name__.lower()
             self.subclass_lut[name] = klass
