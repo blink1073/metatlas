@@ -7,7 +7,7 @@ from pwd import getpwuid
 from tabulate import tabulate
 import pandas as pd
 
-from object_helpers import (
+from metatlas.object_helpers import (
     set_docstring, Workspace, format_timestamp, MetList,
     MetUnicode, MetFloat, MetInstance, MetInt, MetEnum, MetBool, HasTraits,
     Stub
