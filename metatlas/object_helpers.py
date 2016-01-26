@@ -4,6 +4,7 @@ import getpass
 import six
 import uuid
 from collections import defaultdict
+import warnings
 
 import dataset
 import pandas as pd
@@ -168,16 +169,21 @@ class Workspace(object):
                 self.path = 'mysql+pymysql://meta_atlas_admin:%s@scidb1.nersc.gov/%s' %(pw, nersc_info['db_name'])
 
         else: # allow for fallback to local config when not on NERSC
-            with open(os.path.join(metatlas_dir, 'local_config', 'local.yml')) as fid:
-                local_info = yaml.load(fid)
+            local_path = os.path.join(metatlas_dir, 'local_config', 'local.yml')
+            if not os.path.exists(local_path):
+                self.path = 'sqlite:///' + getpass.getuser() + '_workspace.db'
+                warnings.warn('Could not find local settings file "%s", falling back on "%s" database' % (local_path, self.path))
+            else:
+                with open(local_path) as fid:
+                    local_info = yaml.load(fid)
 
-            #self.path = 'sqlite:///' + getpass.getuser() + '_workspace.db'
-            self.path = 'mysql+pymysql://localhost/%s' %(local_info['db_name'])
+                #self.path = 'sqlite:///' + getpass.getuser() + '_workspace.db'
+                self.path = 'mysql+pymysql://localhost/%s' %(local_info['db_name'])
 
         self._db = None
         self.tablename_lut = dict()
         self.subclass_lut = dict()
-        from metatlas_objects import MetatlasObject
+        from metatlas.metatlas_objects import MetatlasObject
         for klass in _get_subclasses(MetatlasObject):
             name = klass.__name__.lower()
             self.subclass_lut[name] = klass
@@ -315,6 +321,8 @@ class Workspace(object):
 
     def fix_table(self, table_name):
         """Fix a table by converting floating point values to doubles"""
+        if 'sqlite' in self.path:
+            return
         klass = self.subclass_lut.get(table_name, None)
         if not klass:
             return
@@ -615,3 +623,12 @@ def get_from_nersc(user, relative_path):
     proc.expect('Download Complete')
     proc.close()
     return os.path.abspath(os.path.basename(relative_path))
+
+
+if __name__ == '__main__':
+    from metatlas import IntensityReference, store, retrieve
+    m1 = IntensityReference(name='spam')
+    store(m1)
+    m1.description = 'baz'
+    store(m1)
+    print(retrieve('intensityreference', name='spam'))
