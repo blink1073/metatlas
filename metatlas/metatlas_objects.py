@@ -18,6 +18,9 @@ from metatlas.object_helpers import (
 # a large number of objects.
 FETCH_STUBS = True
 
+# Circular reference guard
+CIRCULAR_GUARD = False
+
 POLARITY = ('positive', 'negative', 'alternating')
 
 
@@ -218,20 +221,29 @@ class MetatlasObject(HasTraits):
         self._changed = True
 
     def __str__(self):
+        if CIRCULAR_GUARD:
+            return super(MetatlasObject, self).__str__()
         return self.__repr__()
 
     def __repr__(self):
+        if CIRCULAR_GUARD:
+            return super(MetatlasObject, self).__repr__()
         names = sorted(self.trait_names())
         names.remove('name')
         names = ['name'] + [n for n in names if not n.startswith('_')]
         state = dict([(n, getattr(self, n)) for n in names])
         state['creation_time'] = format_timestamp(self.creation_time)
         state['last_modified'] = format_timestamp(self.last_modified)
-        return pprint.pformat(state)
+        try:
+            return pprint.pformat(state)
+        except Exception:
+            return repr(state)
 
     def __getattribute__(self, name):
         """Automatically resolve stubs on demand.
         """
+        global CIRCULAR_GUARD
+        CIRCULAR_GUARD = True
         value = super(MetatlasObject, self).__getattribute__(name)
         if isinstance(value, Stub) and FETCH_STUBS:
             value = value.retrieve()
@@ -248,6 +260,7 @@ class MetatlasObject(HasTraits):
             if changed:
                 setattr(self, name, new)
                 value = new
+        CIRCULAR_GUARD = False
         return value
 
 

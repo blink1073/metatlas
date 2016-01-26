@@ -22,8 +22,6 @@ except ImportError:
         HasTraits, CUnicode, List, CInt, Instance, Enum,
         CFloat, CBool)
 
-# this will eventually enter into the local config file
-#db_passwd_file = '/project/projectdirs/metatlas/mysql_user.txt'
 
 # Observable List from
 # http://stackoverflow.com/a/13259435
@@ -36,38 +34,6 @@ def callback_method(func):
             callback()
         return func(self, *args, **kwargs)
     return notify
-
-
-def update_table(db_name, table_name):
-    """
-    Parameters
-    ----------
-    table_class
-
-    Returns
-    -------
-
-    """
-
-
-
-    #_obj = table_class
-    #Create a new object of that class and store it.
-    #Log into database
-    db = dataset.connect(db_name)
-
-    # see if table exits; if not, create it
-
-    #Run alter table TABLE_NAME modify COLUMN_NAME double; for each float column
-    db.query('alter table `%s` modify `%s` double' % (table_name, 'peak_area'))
-    db.query('alter table `%s` modify `%s` double' % (table_name, 'peak_height'))
-    db.query('alter table `%s` modify `%s` double' % (table_name, 'amount'))
-    pass
-
-
-
-
-
 
 
 class NotifyList(list):
@@ -290,6 +256,7 @@ class Workspace(object):
                 # create an entry in the table for each item
                 # store the item in its own table
                 for subvalue in value:
+                    print(subvalue, override)
                     self._save(subvalue, override)
                     link = dict(source_id=obj.unique_id,
                                 head_id=obj.head_id,
@@ -306,8 +273,9 @@ class Workspace(object):
                 # otherwise, store the uid and allow the object to store
                 # itself
                 else:
+                    if value._changed:
+                        self._save(value, override)
                     state[tname] = value.unique_id
-                    self._save(value, override)
             elif changed:
                 value = getattr(obj, tname)
                 # store the raw value in this table
